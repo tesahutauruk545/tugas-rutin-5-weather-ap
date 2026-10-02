@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="Weather App Pro - Cek cuaca real-time di seluruh Indonesia">
+    <title>Weather App Pro - Tugas Rutin 5</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Dynamic Background -->
+    <div class="weather-bg" id="weatherBg">
+        <div class="bg-overlay"></div>
+        <div class="rain-effect" id="rainEffect"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="location-info">
+                <p class="location-label" id="locationLabel">LOKASI SAYA</p>
+                <h1 class="location-name" id="locationName">Memuat...</h1>
+                <p class="current-temp-desc">
+                    <span id="currentTemp">--°</span>
+                    <span class="separator">|</span>
+                    <span id="currentDesc">--</span>
+                </p>
+            </div>
+        </header>
+
+        <!-- Search & Location -->
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="cityInput" placeholder="Cari kota di Indonesia..." autocomplete="off">
+                <button id="searchBtn" aria-label="Cari"><i class="fas fa-search"></i></button>
+            </div>
+            <button class="geo-btn" id="geoBtn" title="Gunakan lokasi saya" aria-label="Gunakan lokasi saya">
+                <i class="fas fa-location-crosshairs"></i>
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading-container" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Memuat data cuaca...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+        <!-- Weather Content -->
+        <div id="weatherContent" class="weather-content" style="display: none;">
+            <!-- Hourly Forecast -->
+            <section class="glass-card hourly-section">
+                <h3 class="card-title"><i class="far fa-clock"></i> Prakiraan Per Jam</h3>
+                <div class="hourly-scroll" id="hourlyContainer"></div>
+            </section>
+
+            <!-- 10-Day Forecast -->
+            <section class="glass-card forecast-section">
+                <h3 class="card-title"><i class="far fa-calendar"></i> Ramalan 10 Hari</h3>
+                <div class="forecast-list" id="forecastContainer"></div>
+            </section>
+
+            <!-- Detail Cards Grid -->
+            <div class="details-grid">
+                <!-- Feels Like -->
+                <div class="glass-card detail-card">
+                    <div class="card-header">
+                        <i class="fas fa-temperature-half"></i>
+                        <span>TERASA SEPERTI</span>
+                    </div>
+                    <div class="card-value" id="feelsLikeTemp">--°</div>
+                    <p class="card-desc" id="feelsLikeDesc">-</p>
+                </div>
+
+                <!-- UV Index -->
+                <div class="glass-card detail-card">
+                    <div class="card-header">
+                        <i class="fas fa-sun"></i>
+                        <span>INDEKS UV</span>
+                    </div>
+                    <div class="card-value" id="uvIndex">--</div>
+                    <p class="card-subtitle" id="uvLevel">-</p>
+                    <div class="uv-gauge">
+                        <div class="uv-bar"></div>
+                        <div class="uv-indicator" id="uvIndicator"></div>
+                    </div>
+                    <p class="card-desc" id="uvDesc">-</p>
+                </div>
+
+                <!-- Wind -->
+                <div class="glass-card detail-card wind-card">
+                    <div class="card-header">
+                        <i class="fas fa-wind"></i>
+                        <span>ANGIN</span>
+                    </div>
+                    <div class="wind-content">
+                        <div class="wind-info">
+                            <div class="wind-row">
+                                <span>Angin</span>
+                                <span id="windSpeed">-- km/j</span>
+                            </div>
+                            <div class="wind-row">
+                                <span>Embusan</span>
+                                <span id="windGust">-- km/j</span>
+                            </div>
+                            <div class="wind-row">
+                                <span>Arah</span>
+                                <span id="windDirection">--</span>
+                            </div>
+                        </div>
+                        <div class="wind-compass">
+                            <svg viewBox="0 0 120 120" class="compass-svg">
+                                <circle cx="60" cy="60" r="55" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                                <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                                <text x="60" y="15" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">U</text>
+                                <text x="110" y="65" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">T</text>
+                                <text x="60" y="115" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">S</text>
+                                <text x="10" y="65" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">B</text>
+                                <g id="compassNeedle" transform="rotate(0, 60, 60)">
+                                    <line x1="60" y1="60" x2="60" y2="25" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="60" cy="60" r="4" fill="white"/>
+                                </g>
+                            </svg>
+                            <div class="compass-value">
+                                <span id="compassSpeed">--</span>
+                                <small>km/j</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sunset/Sunrise -->
+                <div class="glass-card detail-card">
+                    <div class="card-header">
+                        <i class="fas fa-sun"></i>
+                        <span>TERBENAM</span>
+                    </div>
+                    <div class="card-value" id="sunsetTime">--:--</div>
+                    <div class="sun-chart">
+                        <svg viewBox="0 0 200 60" class="sun-svg">
+                            <path d="M 10 50 Q 100 -20 190 50" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                            <circle id="sunPosition" cx="100" cy="15" r="6" fill="white"/>
+                            <line x1="10" y1="50" x2="190" y2="50" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    <p class="card-desc">Terbit: <span id="sunriseTime">--:--</span></p>
+                </div>
+
+                <!-- Precipitation -->
+                <div class="glass-card detail-card">
+                    <div class="card-header">
+                        <i class="fas fa-droplet"></i>
+                        <span>PRESIPITASI</span>
+                    </div>
+                    <div class="card-value" id="precipitation">-- mm</div>
+                    <p class="card-desc" id="precipDesc">dalam 6j terakhir</p>
+                    <p class="card-subtitle" id="precipForecast">-</p>
+                </div>
+
+                <!-- Visibility -->
+                <div class="glass-card detail-card">
+                    <div class="card-header">
+                        <i class="fas fa-eye"></i>
+                        <span>VISIBILITAS</span>
+                    </div>
+                    <div class="card-value" id="visibility">-- km</div>
+                    <p class="card-desc" id="visibilityDesc">Pemandangan jelas</p>
+                </div>
+
+                <!-- Humidity -->
+                <div class="glass-card detail-card">
+                    <div class="card-header">
+                        <i class="fas fa-droplet-percent"></i>
+                        <span>KELEMBAPAN</span>
+                    </div>
+                    <div class="card-value" id="humidity">--%</div>
+                    <p class="card-desc" id="dewPoint">Titik embun: --°</p>
+                </div>
+
+                <!-- Pressure -->
+                <div class="glass-card detail-card">
+                    <div class="card-header">
+                        <i class="fas fa-gauge-high"></i>
+                        <span>TEKANAN</span>
+                    </div>
+                    <div class="pressure-gauge">
+                        <svg viewBox="0 0 120 80" class="pressure-svg">
+                            <path d="M 20 70 A 40 40 0 0 1 100 70" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="8" stroke-linecap="round"/>
+                            <path d="M 20 70 A 40 40 0 0 1 100 70" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="8" stroke-linecap="round" stroke-dasharray="125" stroke-dashoffset="60" id="pressureArc"/>
+                            <text x="60" y="55" text-anchor="middle" fill="white" font-size="18" font-weight="600" id="pressureValue">--</text>
+                            <text x="60" y="70" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="10">hPa</text>
+                            <line id="pressureNeedle" x1="60" y1="70" x2="60" y2="35" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="pressure-trend">
+                        <i class="fas fa-arrow-down" id="pressureTrend"></i>
+                    </div>
+                </div>
+
+                <!-- Moon Phase -->
+                <div class="glass-card detail-card moon-card">
+                    <div class="card-header">
+                        <i class="fas fa-moon"></i>
+                        <span id="moonPhaseName">FASE BULAN</span>
+                    </div>
+                    <div class="moon-content">
+                        <div class="moon-info">
+                            <div class="moon-row">
+                                <span>Pencahayaan</span>
+                                <span id="moonIllumination">--%</span>
+                            </div>
+                            <div class="moon-row">
+                                <span>Bulan ↑</span>
+                                <span id="moonriseTime">--:--</span>
+                            </div>
+                            <div class="moon-row">
+                                <span>Bulan Purnama Berikutnya</span>
+                                <span id="nextFullMoon">-- hr</span>
+                            </div>
+                        </div>
+                        <div class="moon-visual" id="moonVisual">
+                            <div class="moon-circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rain Map Section -->
+            <section class="glass-card map-section">
+                <h3 class="card-title"><i class="fas fa-map-location-dot"></i> Peta Curah Hujan Indonesia</h3>
+                <div class="map-container">
+                    <iframe 
+                        id="rainMap"
+                        src="https://openweathermap.org/weathermap?basemap=map&cities=true&layer=precipitation&lat=-2.5489&lon=118.0149&zoom=5"
+                        frameborder="0"
+                        allowfullscreen
+                        loading="lazy">
+                    </iframe>
+                </div>
+                <p class="map-note">Data curah hujan real-time seluruh Indonesia</p>
+            </section>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn" id="mapNavBtn" aria-label="Lihat peta">
+                <i class="fas fa-map"></i>
+            </button>
+            <button class="nav-btn active" id="locationNavBtn" aria-label="Lokasi saat ini">
+                <i class="fas fa-location-arrow"></i>
+            </button>
+            <button class="nav-btn" id="menuNavBtn" aria-label="Menu detail">
+                <i class="fas fa-list"></i>
+            </button>
+        </nav>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
